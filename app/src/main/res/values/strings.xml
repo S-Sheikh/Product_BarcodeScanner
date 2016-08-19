@@ -2,4 +2,7 @@
     <string name="app_name">Product Scanner</string>
     <string name="add_products">Add Product</string>
     <string name="sync_database">Sync Now</string>
+    <string name="hint_clickToScan">Click to Scan Product Code</string>
+    <string name="hint_title">Provide Title for Product</string>
+    <string name="hint_description">Provide Description for Product</string>
 </resources>
