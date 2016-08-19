@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Product Scanner</string>
+    <string name="add_products">Add Product</string>
+    <string name="sync_database">Sync Now</string>
 </resources>

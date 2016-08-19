@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ProductScanner="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+    <item
+        android:title="@string/add_products"
+        android:id="@+id/add_products"
+        android:orderInCategory="100"
+        ProductScanner:showAsAction="always" />
+    <item
+        android:title="@string/sync_database"
+        android:id="@+id/sync_products"
+        android:orderInCategory="101"
+        ProductScanner:showAsAction="always" />
+
+</menu>
