@@ -4,11 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity">
     <item
+        android:icon="@drawable/ic_add_product"
         android:title="@string/add_products"
         android:id="@+id/add_products"
         android:orderInCategory="100"
         ProductScanner:showAsAction="always" />
     <item
+        android:icon="@drawable/ic_sync"
         android:title="@string/sync_database"
         android:id="@+id/sync_products"
         android:orderInCategory="101"
