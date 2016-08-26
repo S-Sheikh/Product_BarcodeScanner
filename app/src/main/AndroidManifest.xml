@@ -22,6 +22,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Add_New_Product"></activity>
+        <activity android:name=".AddNewProductActivity"></activity>
     </application>
 </manifest>

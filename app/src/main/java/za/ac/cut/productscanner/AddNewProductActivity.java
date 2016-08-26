@@ -19,7 +19,7 @@ import com.backendless.exceptions.BackendlessFault;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-public class Add_New_Product extends AppCompatActivity {
+public class AddNewProductActivity extends AppCompatActivity {
 
     EditText et_scan, et_title, et_description;
     private DBHelper mydb;
@@ -27,7 +27,7 @@ public class Add_New_Product extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mydb = new DBHelper(this);
-        setContentView(R.layout.activity_add__new__product);
+        setContentView(R.layout.activity_add_new_product);
         getSupportActionBar().setTitle("Add Product");
         et_scan =(EditText)findViewById(R.id.et_scan);
         et_title = (EditText)findViewById(R.id.et_title);
@@ -98,7 +98,7 @@ public class Add_New_Product extends AppCompatActivity {
                     if (et_scan.getText().toString().equals("")
                             || et_title.getText().toString().equals("")
                             || et_description.toString().equals("")) {
-                        Toast.makeText(Add_New_Product.this, "Please Enter All Fields", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AddNewProductActivity.this, "Please Enter All Fields", Toast.LENGTH_SHORT).show();
                     } else {
                         Product product = new Product();
                         product.setProductCode(et_scan.getText().toString().trim());
@@ -108,25 +108,25 @@ public class Add_New_Product extends AppCompatActivity {
                         Backendless.Persistence.save(product, new AsyncCallback<Product>() {
                             @Override
                             public void handleResponse(Product product) {
-                                Toast.makeText(Add_New_Product.this, "Product Successfully Saved!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(AddNewProductActivity.this, "Product Successfully Saved!", Toast.LENGTH_SHORT).show();
                                 if (mydb.insertProduct(et_scan.getText().toString(), et_title.getText().toString(), et_description.getText().toString())) {
                                     Toast.makeText(getApplicationContext(), "done", Toast.LENGTH_SHORT).show();
                                 } else {
                                     Toast.makeText(getApplicationContext(), "not done", Toast.LENGTH_LONG).show();
                                 }
-                                Add_New_Product.this.finish();
+                                AddNewProductActivity.this.finish();
 
                             }
 
                             @Override
                             public void handleFault(BackendlessFault backendlessFault) {
-                                Toast.makeText(Add_New_Product.this, "Error: " + backendlessFault.getMessage()
+                                Toast.makeText(AddNewProductActivity.this, "Error: " + backendlessFault.getMessage()
                                         , Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
                 } else {
-                    Toast.makeText(Add_New_Product.this, "No Internet Connection, Please Connect First"
+                    Toast.makeText(AddNewProductActivity.this, "No Internet Connection, Please Connect First"
                             , Toast.LENGTH_SHORT).show();
                 }
                 return true;

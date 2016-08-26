@@ -33,7 +33,7 @@ public class MainActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.add_products:
-                startActivity(new Intent(MainActivity.this,Add_New_Product.class));
+                startActivity(new Intent(MainActivity.this,AddNewProductActivity.class));
                 return true;
             case R.id.sync_products:
 
