@@ -18,7 +18,7 @@ tools:context=".AddNewProductActivity">
     android:layout_gravity="center_horizontal"
     android:clickable="true"
     android:onClick="btnScan"
-    android:src="@mipmap/ic_scan" />
+    android:src="@drawable/scan" />
 
 <TextView
     android:id="@+id/textView"
