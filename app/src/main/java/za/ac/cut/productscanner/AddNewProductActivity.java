@@ -19,16 +19,18 @@ import com.backendless.exceptions.BackendlessFault;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
+import za.ac.cut.productscanner.data.ProductsDbHelper;
+
 public class AddNewProductActivity extends AppCompatActivity {
 
     EditText et_scan, et_title, et_description;
-    private DBHelper mydb;
+    private ProductsDbHelper mydb;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mydb = new DBHelper(this);
+        mydb = new ProductsDbHelper(this);
         setContentView(R.layout.activity_add_new_product);
-        getSupportActionBar().setTitle("Add Product");
+//        getSupportActionBar().setTitle("Add Product");
         et_scan =(EditText)findViewById(R.id.et_scan);
         et_title = (EditText)findViewById(R.id.et_title);
         et_description = (EditText)findViewById(R.id.et_description);
@@ -38,7 +40,7 @@ public class AddNewProductActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.add_option, menu);
+        inflater.inflate(R.menu.menu_add, menu);
         return super.onCreateOptionsMenu(menu);
     }
     public void onClick_et_scan(View v){
