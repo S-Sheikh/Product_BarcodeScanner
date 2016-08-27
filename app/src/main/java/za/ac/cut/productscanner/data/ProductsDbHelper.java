@@ -27,19 +27,19 @@ public class ProductsDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-       final String SQL_CREATE_PRODUCTS_TABLE =
+        final String SQL_CREATE_PRODUCTS_TABLE =
                 "CREATE TABLE " + ProductEntry.TABLE_NAME + " (" +
-                ProductEntry.COLUMN_CODE + " TEXT PRIMARY KEY, " +
-                ProductEntry.COLUMN_TITLE + " TEXT," +
-                ProductEntry.COLUMN_DESCRIPTION + " TEXT)";
+                        ProductEntry.COLUMN_CODE + " TEXT PRIMARY KEY, " +
+                        ProductEntry.COLUMN_TITLE + " TEXT," +
+                        ProductEntry.COLUMN_DESCRIPTION + " TEXT)";
 
         db.execSQL(SQL_CREATE_PRODUCTS_TABLE);
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS" + ProductEntry.TABLE_NAME);
-        onCreate(sqLiteDatabase);
+    public void onUpgrade(SQLiteDatabase db, int i, int i1) {
+        db.execSQL("DROP TABLE IF EXISTS" + ProductEntry.TABLE_NAME);
+        onCreate(db);
     }
 
     public boolean insertProduct(String code, String title, String description) {
@@ -70,17 +70,17 @@ public class ProductsDbHelper extends SQLiteOpenHelper {
         contentValues.put(ProductEntry.COLUMN_CODE, code);
         contentValues.put(ProductEntry.COLUMN_TITLE, title);
         contentValues.put(ProductEntry.COLUMN_DESCRIPTION, description);
-        db.update(ProductEntry.TABLE_NAME, contentValues, "code = ? ", new String[]{code});
+        db.update(ProductEntry.TABLE_NAME, contentValues, ProductEntry.COLUMN_CODE + " = ? ", new String[]{code});
         return true;
     }
 
     public Integer deleteProduct(String code) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(ProductEntry.TABLE_NAME, "code = ? ", new String[]{code});
+        return db.delete(ProductEntry.TABLE_NAME, ProductEntry.COLUMN_CODE + " = ? ", new String[]{code});
     }
 
     public ArrayList<String> getAllProducts() {
-        ArrayList<String> products = new ArrayList<>();
+        ArrayList<String> array_list = new ArrayList<>();
 
         //hp = new HashMap();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -88,9 +88,9 @@ public class ProductsDbHelper extends SQLiteOpenHelper {
         res.moveToFirst();
 
         while (!res.isAfterLast()) {
-            products.add(res.getString(res.getColumnIndex(ProductEntry.TABLE_NAME)));
+            array_list.add(res.getString(res.getColumnIndex(ProductEntry.TABLE_NAME)));
             res.moveToNext();
         }
-        return products;
+        return array_list;
     }
 }

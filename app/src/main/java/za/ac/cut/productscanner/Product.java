@@ -4,47 +4,30 @@ package za.ac.cut.productscanner;
  * Created by Shahbaaz Sheikh on 24/08/2016.
  */
 public class Product {
-    private String productCode;
-    private String productTitle;
-    private String productDesc;
+    private String productCode,productTitle,productDesc, objectId;
 
-    private String objectId;
+    public Product() {}
 
-    public Product() {
-        this.productCode = null;
-        this.productTitle = null;
-        this.productDesc = null;
+    public Product(String productCode, String productTitle, String productDesc) {
+        this.productCode = productCode;
+        this.productTitle = productTitle;
+        this.productDesc = productDesc;
     }
 
     public String getProductCode() {
         return productCode;
     }
 
-    public void setProductCode(String productCode) {
-        this.productCode = productCode;
-    }
-
     public String getProductTitle() {
         return productTitle;
-    }
-
-    public void setProductTitle(String productTitle) {
-        this.productTitle = productTitle;
     }
 
     public String getProductDesc() {
         return productDesc;
     }
 
-    public void setProductDesc(String productDesc) {
-        this.productDesc = productDesc;
-    }
-
     public String getObjectId() {
         return objectId;
     }
 
-    public void setObjectId(String objectId) {
-        this.objectId = objectId;
-    }
 }

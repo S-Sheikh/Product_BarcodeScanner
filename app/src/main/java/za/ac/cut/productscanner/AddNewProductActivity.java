@@ -25,15 +25,15 @@ public class AddNewProductActivity extends AppCompatActivity {
 
     EditText et_scan, et_title, et_description;
     private ProductsDbHelper mydb;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mydb = new ProductsDbHelper(this);
         setContentView(R.layout.activity_add_new_product);
-//        getSupportActionBar().setTitle("Add Product");
-        et_scan =(EditText)findViewById(R.id.et_scan);
-        et_title = (EditText)findViewById(R.id.et_title);
-        et_description = (EditText)findViewById(R.id.et_description);
+        et_scan = (EditText) findViewById(R.id.et_scan);
+        et_title = (EditText) findViewById(R.id.et_title);
+        et_description = (EditText) findViewById(R.id.et_description);
     }
 
     @Override
@@ -43,17 +43,39 @@ public class AddNewProductActivity extends AppCompatActivity {
         inflater.inflate(R.menu.menu_add, menu);
         return super.onCreateOptionsMenu(menu);
     }
-    public void onClick_et_scan(View v){
-        scanNow(v);
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.save_new_product) {
+            if (connectionAvailable()) {
+                if (validateInput()) {
+                    saveProduct();
+                } else {
+                    Toast.makeText(AddNewProductActivity.this, "Please Enter All Fields", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(AddNewProductActivity.this, "No Internet Connection, Please Connect First",
+                        Toast.LENGTH_SHORT).show();
+            }
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
     }
+
+    public void onClick_et_scan(View v) {
+        scanNow(v);
+    }
+
     public void scanNow(View view) {
         IntentIntegrator integrator = new IntentIntegrator(this);
-        integrator.setDesiredBarcodeFormats(IntentIntegrator.ONE_D_CODE_TYPES);
-        integrator.setPrompt("Scan the barcode or back to exit"); // text at bottom when scanner runs
-        integrator.setResultDisplayDuration(0);
-        integrator.setWide();  // Wide scanning rectangle, may work better for 1D barcodes
-        integrator.setCameraId(0);  // Use a specific camera of the device
+
+        integrator.setDesiredBarcodeFormats(IntentIntegrator.ONE_D_CODE_TYPES)
+                .setPrompt("Scan the barcode or back to exit")// text at bottom when scanner runs
+                .setResultDisplayDuration(0)
+                .setCameraId(0) // Use a specific camera of the device
+                .setWide(); // Wide scanning rectangle, may work better for 1D barcodes
+
         integrator.initiateScan();
     }
 
@@ -64,14 +86,11 @@ public class AddNewProductActivity extends AppCompatActivity {
         if (scanningResult != null) {
             //we have a result
             String scanContent = scanningResult.getContents();
-            String scanFormat = scanningResult.getFormatName(); // if you need the format
-
-            if (scanContent != null && !scanContent.equals("")) {
+            if (scanContent != null && !scanContent.isEmpty()) {
                 et_scan.setText(scanContent);
             }
         } else {
-            Toast toast = Toast.makeText(getApplicationContext(), "No scan data received!", Toast.LENGTH_SHORT);
-            toast.show();
+            Toast.makeText(getApplicationContext(), "No scan data received!", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -92,48 +111,40 @@ public class AddNewProductActivity extends AppCompatActivity {
         return connected;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.save_new_product:
-                if (connectionAvailable()) {
-                    if (et_scan.getText().toString().equals("")
-                            || et_title.getText().toString().equals("")
-                            || et_description.toString().equals("")) {
-                        Toast.makeText(AddNewProductActivity.this, "Please Enter All Fields", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Product product = new Product();
-                        product.setProductCode(et_scan.getText().toString().trim());
-                        product.setProductTitle(et_title.getText().toString().trim());
-                        product.setProductDesc(et_description.getText().toString().trim());
-
-                        Backendless.Persistence.save(product, new AsyncCallback<Product>() {
-                            @Override
-                            public void handleResponse(Product product) {
-                                Toast.makeText(AddNewProductActivity.this, "Product Successfully Saved!", Toast.LENGTH_SHORT).show();
-                                if (mydb.insertProduct(et_scan.getText().toString(), et_title.getText().toString(), et_description.getText().toString())) {
-                                    Toast.makeText(getApplicationContext(), "done", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Toast.makeText(getApplicationContext(), "not done", Toast.LENGTH_LONG).show();
-                                }
-                                AddNewProductActivity.this.finish();
-
-                            }
-
-                            @Override
-                            public void handleFault(BackendlessFault backendlessFault) {
-                                Toast.makeText(AddNewProductActivity.this, "Error: " + backendlessFault.getMessage()
-                                        , Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                } else {
-                    Toast.makeText(AddNewProductActivity.this, "No Internet Connection, Please Connect First"
-                            , Toast.LENGTH_SHORT).show();
-                }
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
+    private boolean validateInput() {
+        return !(et_scan.getText().toString().isEmpty()
+                || et_title.getText().toString().isEmpty()
+                || et_description.toString().isEmpty());
     }
+
+    private void saveProduct() {
+        Product product = new Product(
+                et_scan.getText().toString().trim(),
+                et_title.getText().toString().trim(),
+                et_description.getText().toString().trim());
+
+        Backendless.Persistence.save(product, new AsyncCallback<Product>() {
+            @Override
+            public void handleResponse(Product product) {
+                Toast.makeText(AddNewProductActivity.this,
+                        "Product Successfully Saved!", Toast.LENGTH_SHORT).show();
+                if (mydb.insertProduct(et_scan.getText().toString(),
+                        et_title.getText().toString(), et_description.getText().toString())) {
+                    Toast.makeText(getApplicationContext(), "done", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "not done", Toast.LENGTH_SHORT).show();
+                }
+                AddNewProductActivity.this.finish();
+            }
+
+            @Override
+            public void handleFault(BackendlessFault backendlessFault) {
+                Toast.makeText(AddNewProductActivity.this,
+                        "Error: " + backendlessFault.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+
 }
