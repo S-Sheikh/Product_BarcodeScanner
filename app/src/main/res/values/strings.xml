@@ -5,4 +5,5 @@
     <string name="hint_clickToScan">Click to Scan Product Code</string>
     <string name="hint_title">Provide Title for Product</string>
     <string name="hint_description">Provide Description for Product</string>
+    <string name="scan_barcode_text">Scan a barcode to see product details</string>
 </resources>
