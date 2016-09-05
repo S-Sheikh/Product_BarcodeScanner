@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Shahbaaz Sheikh on 24/08/2016.
@@ -49,9 +50,9 @@ public class DBHelper extends SQLiteOpenHelper {
         return true;
     }
 
-    public Cursor getData(int id) {
+    public Cursor getData(int code) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res = db.rawQuery("select * from Products where code=" + id + "", null);
+        Cursor res = db.rawQuery("select * from Products where code=" + code + "", null);
         return res;
     }
 
@@ -86,6 +87,20 @@ public class DBHelper extends SQLiteOpenHelper {
 
         while (res.isAfterLast() == false) {
             array_list.add(res.getString(res.getColumnIndex(DATABASE_TABLE)));
+            res.moveToNext();
+        }
+        return array_list;
+    }
+    public ArrayList<Product> getEverything(){
+        ArrayList<Product> array_list = new ArrayList<>();
+
+        //hp = new HashMap();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res = db.rawQuery("select * from Products", null);
+        res.moveToFirst();
+
+        while (res.isAfterLast() == false) {
+            array_list.add(new Product(res.getString(res.getColumnIndex(COLUMN_CODE)),res.getString(res.getColumnIndex(COLUMN_TITLE)),res.getString(res.getColumnIndex(COLUMN_DESCRIPTION))));
             res.moveToNext();
         }
         return array_list;

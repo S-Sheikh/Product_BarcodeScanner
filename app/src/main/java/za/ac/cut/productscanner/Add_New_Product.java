@@ -14,15 +14,22 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.backendless.Backendless;
+import com.backendless.BackendlessCollection;
 import com.backendless.async.callback.AsyncCallback;
 import com.backendless.exceptions.BackendlessFault;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
+import java.util.List;
+
+import za.ac.cut.productscanner.DBHelper;
+
 public class Add_New_Product extends AppCompatActivity {
 
     EditText et_scan, et_title, et_description;
     private DBHelper mydb;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,9 +122,7 @@ public class Add_New_Product extends AppCompatActivity {
                                     Toast.makeText(getApplicationContext(), "not done", Toast.LENGTH_LONG).show();
                                 }
                                 Add_New_Product.this.finish();
-
                             }
-
                             @Override
                             public void handleFault(BackendlessFault backendlessFault) {
                                 Toast.makeText(Add_New_Product.this, "Error: " + backendlessFault.getMessage()
@@ -134,4 +139,5 @@ public class Add_New_Product extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
 }
