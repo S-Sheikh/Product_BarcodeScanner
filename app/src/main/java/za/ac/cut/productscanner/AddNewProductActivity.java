@@ -145,6 +145,4 @@ public class AddNewProductActivity extends AppCompatActivity {
             }
         });
     }
-
-
 }

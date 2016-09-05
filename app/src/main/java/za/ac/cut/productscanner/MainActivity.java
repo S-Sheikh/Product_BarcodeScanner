@@ -1,17 +1,29 @@
 package za.ac.cut.productscanner;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.backendless.Backendless;
 import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+
+import za.ac.cut.productscanner.data.ProductsContract;
+import za.ac.cut.productscanner.data.ProductsDbHelper;
 
 public class MainActivity extends AppCompatActivity {
 
+    TextView tv_title, tv_description, tv_code;
+
+    DBHelper mydb;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -19,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
         String appVersion = "v1";
         Backendless.initApp(MainActivity.this, "224DEF34-4407-B1F5-FF66-D2D273486A00",
                 "DEFF6443-CF52-2597-FF61-5301E7745F00", appVersion);
+        mydb = new DBHelper(this);
+        tv_title = (TextView) findViewById(R.id.tv_title);
+        tv_description = (TextView) findViewById(R.id.tv_description);
+        tv_code = (TextView) findViewById(R.id.tv_code);
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -54,4 +70,33 @@ public class MainActivity extends AppCompatActivity {
         scanNow(v);
     }
 
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        //retrieve scan result
+        IntentResult scanningResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
+        Boolean flag = true;
+        if (scanningResult != null) {
+            //we have a result
+            String scanContent = scanningResult.getContents();
+            String scanFormat = scanningResult.getFormatName(); // if you need the format
+
+            if (scanContent != null && !scanContent.equals("")) {
+                //tvScanned.setText("Scanned code: " + scanContent);
+                Cursor rs = mydb.getData(Integer.parseInt(scanContent));
+                while (rs.moveToNext()) {
+                    if (rs.getString(rs.getColumnIndex(DBHelper.COLUMN_CODE)) == scanContent.toString()) {
+                        tv_title.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_TITLE)));
+                        tv_description.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_DESCRIPTION)));
+                        tv_code.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_CODE)));
+                        flag = false;
+                    }
+                }
+                if(flag){
+                    Toast.makeText(MainActivity.this, "No Such Product Exists in Database!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        } else {
+            Toast toast = Toast.makeText(getApplicationContext(), "No scan data received!", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
 }

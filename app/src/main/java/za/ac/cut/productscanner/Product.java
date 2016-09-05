@@ -14,11 +14,7 @@ public class Product {
         this.productDesc = productDesc;
     }
 
-    public Product(String code, String title, String desc){
-        this.productCode = code;
-        this.productTitle = title;
-        this.productDesc = desc;
-    }
+
     public Product(String productCode){
         this.productCode = productCode;
     }
