@@ -19,17 +19,17 @@ import com.backendless.exceptions.BackendlessFault;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-import za.ac.cut.productscanner.data.ProductsDbHelper;
+
 
 public class AddNewProductActivity extends AppCompatActivity {
 
     EditText et_scan, et_title, et_description;
-    private ProductsDbHelper mydb;
+    private DBHelper mydb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mydb = new ProductsDbHelper(this);
+        mydb = new DBHelper(this);
         setContentView(R.layout.activity_add_new_product);
         et_scan = (EditText) findViewById(R.id.et_scan);
         et_title = (EditText) findViewById(R.id.et_title);

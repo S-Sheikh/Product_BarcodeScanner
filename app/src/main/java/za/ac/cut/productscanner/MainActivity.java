@@ -2,6 +2,7 @@ package za.ac.cut.productscanner;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -16,8 +17,7 @@ import com.backendless.Backendless;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-import za.ac.cut.productscanner.data.ProductsContract;
-import za.ac.cut.productscanner.data.ProductsDbHelper;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         integrator.setWide();  // Wide scanning rectangle, may work better for 1D barcodes
         integrator.setCameraId(0);  // Use a specific camera of the device
         integrator.initiateScan();
+
     }
 
     public void btnScan(View v) {
@@ -74,22 +75,31 @@ public class MainActivity extends AppCompatActivity {
         //retrieve scan result
         IntentResult scanningResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
         Boolean flag = true;
+
+
         if (scanningResult != null) {
             //we have a result
             String scanContent = scanningResult.getContents();
             String scanFormat = scanningResult.getFormatName(); // if you need the format
 
             if (scanContent != null && !scanContent.equals("")) {
-                //tvScanned.setText("Scanned code: " + scanContent);
-                Cursor rs = mydb.getData(Integer.parseInt(scanContent));
-                while (rs.moveToNext()) {
-                    if (rs.getString(rs.getColumnIndex(DBHelper.COLUMN_CODE)) == scanContent.toString()) {
+                DBHelper mydb = new DBHelper(getApplicationContext());
+                SQLiteDatabase db=mydb.getReadableDatabase();
+                Cursor rs = db.rawQuery("SELECT * From PRODUCTS WHERE CODE = '" + scanContent.trim() + "'",null);
+                rs.moveToPosition(0);
+
+                    do
+                    {
+                        if (rs.getString(rs.getColumnIndex(DBHelper.COLUMN_CODE)).equals(scanContent.toString())) {
                         tv_title.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_TITLE)));
                         tv_description.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_DESCRIPTION)));
                         tv_code.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_CODE)));
                         flag = false;
                     }
-                }
+                    }while (rs.moveToNext());
+
+//
+                rs.close();
                 if(flag){
                     Toast.makeText(MainActivity.this, "No Such Product Exists in Database!", Toast.LENGTH_SHORT).show();
                 }
