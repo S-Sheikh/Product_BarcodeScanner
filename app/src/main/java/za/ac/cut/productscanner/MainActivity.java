@@ -3,6 +3,9 @@ package za.ac.cut.productscanner;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -10,13 +13,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.content.Context;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.backendless.Backendless;
+import com.backendless.BackendlessCollection;
+import com.backendless.async.callback.AsyncCallback;
+import com.backendless.exceptions.BackendlessFault;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -24,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     TextView tv_title, tv_description, tv_code;
 
     DBHelper mydb;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         tv_description = (TextView) findViewById(R.id.tv_description);
         tv_code = (TextView) findViewById(R.id.tv_code);
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu items for use in the action bar
@@ -45,14 +57,23 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.add_products:
-                startActivity(new Intent(MainActivity.this,AddNewProductActivity.class));
+                startActivity(new Intent(MainActivity.this, AddNewProductActivity.class));
                 return true;
             case R.id.sync_products:
-
+                if (connectionAvailable()) {
+                    try {
+                        fetchingFirstPageAsync();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "No Internet Access, Please Check you Connection", Toast.LENGTH_SHORT).show();
+                }
                 return true;
-            default:return super.onOptionsItemSelected(item);
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
@@ -84,23 +105,19 @@ public class MainActivity extends AppCompatActivity {
 
             if (scanContent != null && !scanContent.equals("")) {
                 DBHelper mydb = new DBHelper(getApplicationContext());
-                SQLiteDatabase db=mydb.getReadableDatabase();
-                Cursor rs = db.rawQuery("SELECT * From PRODUCTS WHERE CODE = '" + scanContent.trim() + "'",null);
-                rs.moveToPosition(0);
-
-                    do
-                    {
-                        if (rs.getString(rs.getColumnIndex(DBHelper.COLUMN_CODE)).equals(scanContent.toString())) {
+                SQLiteDatabase db = mydb.getReadableDatabase();
+                Cursor rs = db.rawQuery("SELECT * From PRODUCTS WHERE CODE = '" + scanContent.trim() + "'", null);
+                rs.moveToFirst();
+                do {
+                    if (rs.getString(rs.getColumnIndex(DBHelper.COLUMN_CODE)).equals(scanContent.toString())) {
                         tv_title.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_TITLE)));
                         tv_description.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_DESCRIPTION)));
                         tv_code.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_CODE)));
                         flag = false;
                     }
-                    }while (rs.moveToNext());
-
-//
+                } while (rs.moveToNext());
                 rs.close();
-                if(flag){
+                if (flag) {
                     Toast.makeText(MainActivity.this, "No Such Product Exists in Database!", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -108,5 +125,80 @@ public class MainActivity extends AppCompatActivity {
             Toast toast = Toast.makeText(getApplicationContext(), "No scan data received!", Toast.LENGTH_SHORT);
             toast.show();
         }
+    }
+
+    private boolean connectionAvailable() {
+        boolean connected = false;
+
+        ConnectivityManager cm = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        if (activeNetwork != null) { //Connected to the internet
+            if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
+                connected = true;
+            } else if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+                connected = true;
+            }
+        } else {
+            connected = false;
+        }
+        return connected;
+    }
+
+    private void fetchingFirstPageAsync() throws InterruptedException {
+        Backendless.Data.of(Product.class).find(new AsyncCallback<BackendlessCollection<Product>>() {
+            @Override
+            public void handleResponse(BackendlessCollection<Product> users) {
+                boolean found = false;
+                boolean toastFlag = false;
+                DBHelper mydb = new DBHelper(MainActivity.this);
+                SQLiteDatabase db = mydb.getReadableDatabase();
+                Iterator<Product> userIterator = users.getCurrentPage().iterator();
+                ArrayList<Product> backArray = new ArrayList<Product>();
+                ArrayList<Product> localArray;
+                localArray = mydb.getEverything();
+                while (userIterator.hasNext()) {
+                    Product user = userIterator.next();
+                    backArray.add(new Product(user.getProductCode()
+                            , user.getProductTitle()
+                            , user.getProductDesc()));
+                }
+                for (Product backProduct : backArray) {
+                    found = false;
+                    for (Product localProduct : localArray) {
+                        if (backProduct.getProductCode().equals(localProduct.getProductCode())) {
+                            found = true;
+                        }
+                        if (!found) {
+                            localArray.add(backProduct);
+                            toastFlag = true;
+                        }
+                    }
+                }
+                if(localArray.size() == 0){
+                    for(Product backProduct : backArray){
+                        localArray.add(backProduct);
+                    }
+                }
+                if (toastFlag) {
+                    mydb.onUpgrade(db,1,1);
+                    for(Product product : localArray){
+                        mydb.insertProduct(product.getProductCode()
+                                ,product.getProductTitle()
+                                ,product.getProductDesc());
+                    }
+                    Toast.makeText(MainActivity.this, "Local Databse Synchronised", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(MainActivity.this, "Local Database Already Up-To-Date", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+
+            @Override
+            public void handleFault(BackendlessFault backendlessFault) {
+                Toast.makeText(MainActivity.this, "Server reported an error: "
+                        + backendlessFault.getMessage()
+                        , Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
