@@ -76,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
-
     public void scanNow(View view) {
         IntentIntegrator integrator = new IntentIntegrator(this);
         integrator.setDesiredBarcodeFormats(IntentIntegrator.ONE_D_CODE_TYPES);
@@ -107,19 +106,26 @@ public class MainActivity extends AppCompatActivity {
                 DBHelper mydb = new DBHelper(getApplicationContext());
                 SQLiteDatabase db = mydb.getReadableDatabase();
                 Cursor rs = db.rawQuery("SELECT * From PRODUCTS WHERE CODE = '" + scanContent.trim() + "'", null);
-                rs.moveToFirst();
-                do {
-                    if (rs.getString(rs.getColumnIndex(DBHelper.COLUMN_CODE)).equals(scanContent.toString())) {
-                        tv_title.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_TITLE)));
-                        tv_description.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_DESCRIPTION)));
-                        tv_code.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_CODE)));
-                        flag = false;
+                try{
+                    rs.moveToFirst();
+                    do {
+                        if(rs.getCount() == 0){
+                            Toast.makeText(MainActivity.this, "dadasda", Toast.LENGTH_SHORT).show();
+                        }else if(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_CODE)).equals(scanContent.toString())){
+                            tv_title.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_TITLE)));
+                            tv_description.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_DESCRIPTION)));
+                            tv_code.setText(rs.getString(rs.getColumnIndex(DBHelper.COLUMN_CODE)));
+                            flag = false;
+                        }
+                    } while (rs.moveToNext());
+                    rs.close();
+                    if (flag) {
+                        Toast.makeText(MainActivity.this, "No Such Product Exists in Database!", Toast.LENGTH_SHORT).show();
                     }
-                } while (rs.moveToNext());
-                rs.close();
-                if (flag) {
-                    Toast.makeText(MainActivity.this, "No Such Product Exists in Database!", Toast.LENGTH_SHORT).show();
+                }catch(Exception e){
+                    Toast.makeText(MainActivity.this, "No Such Product Exists in Database! ", Toast.LENGTH_SHORT).show();
                 }
+
             }
         } else {
             Toast toast = Toast.makeText(getApplicationContext(), "No scan data received!", Toast.LENGTH_SHORT);
@@ -150,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
             public void handleResponse(BackendlessCollection<Product> users) {
                 boolean found = false;
                 boolean toastFlag = false;
+                boolean insertFlag = false;
                 DBHelper mydb = new DBHelper(MainActivity.this);
                 SQLiteDatabase db = mydb.getReadableDatabase();
                 Iterator<Product> userIterator = users.getCurrentPage().iterator();
@@ -162,24 +169,37 @@ public class MainActivity extends AppCompatActivity {
                             , user.getProductTitle()
                             , user.getProductDesc()));
                 }
-                for (Product backProduct : backArray) {
-                    found = false;
-                    for (Product localProduct : localArray) {
-                        if (backProduct.getProductCode().equals(localProduct.getProductCode())) {
-                            found = true;
-                        }
-                        if (!found) {
-                            localArray.add(backProduct);
-                            toastFlag = true;
-                        }
-                    }
-                }
+
                 if(localArray.size() == 0){
                     for(Product backProduct : backArray){
                         localArray.add(backProduct);
                     }
+                    toastFlag = true;
+                }else{
+                    for (Product backProduct : backArray) {
+                        found = false;
+                        for (Product localProduct : localArray) {
+                            found = false;
+                            if (backProduct.getProductCode().equals(localProduct.getProductCode())) {
+                                found = true;
+                            }
+                            if (!found) {
+                                toastFlag = true;
+                                insertFlag = true;
+                            }
+                        }
+                    }
                 }
-                if (toastFlag) {
+                if(toastFlag && insertFlag){
+                    mydb.onUpgrade(db,1,1);
+                    for(Product product : backArray){
+                        mydb.insertProduct(product.getProductCode()
+                                ,product.getProductTitle()
+                                ,product.getProductDesc());
+                    }
+                    Toast.makeText(MainActivity.this, "Local Databse Synchronised", Toast.LENGTH_SHORT).show();
+                }
+                else if (toastFlag) {
                     mydb.onUpgrade(db,1,1);
                     for(Product product : localArray){
                         mydb.insertProduct(product.getProductCode()
@@ -188,11 +208,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                     Toast.makeText(MainActivity.this, "Local Databse Synchronised", Toast.LENGTH_SHORT).show();
                 }else{
-                    Toast.makeText(MainActivity.this, "Local Database Already Up-To-Date", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Local Databse Up-To-Date", Toast.LENGTH_SHORT).show();
                 }
-
             }
-
             @Override
             public void handleFault(BackendlessFault backendlessFault) {
                 Toast.makeText(MainActivity.this, "Server reported an error: "

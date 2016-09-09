@@ -128,12 +128,8 @@ public class AddNewProductActivity extends AppCompatActivity {
             public void handleResponse(Product product) {
                 Toast.makeText(AddNewProductActivity.this,
                         "Product Successfully Saved!", Toast.LENGTH_SHORT).show();
-                if (mydb.insertProduct(et_scan.getText().toString(),
-                        et_title.getText().toString(), et_description.getText().toString())) {
-                    Toast.makeText(getApplicationContext(), "done", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getApplicationContext(), "not done", Toast.LENGTH_SHORT).show();
-                }
+                mydb.insertProduct(et_scan.getText().toString(),
+                        et_title.getText().toString(), et_description.getText().toString());
                 AddNewProductActivity.this.finish();
             }
 
